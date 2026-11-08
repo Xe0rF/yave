@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yave demo · 抛物线为什么是抛物线</title>
+</head>
+<body>
+  <main class="y-page">
+    <header class="y-hero">
+      <div class="y-kicker">yave demo</div>
+      <h1>抛物线上的每个点，到焦点和准线距离相等</h1>
+      <p class="y-lede">用三帧看定义如何变成一条曲线。</p>
+    </header>
+
+    <div class="y-callout">
+      <strong>结论：</strong>y = x²/4 上任意一点 P，到焦点 F(0, 1) 的距离等于到准线 y = −1 的距离。
+    </div>
+
+    <div class="y-steps">
+      <section class="y-step">
+        <h2>先放好焦点和准线</h2>
+        <p>焦点 F 在 (0, 1)，准线是水平线 y = −1。</p>
+        <yave-geo x="-4,4" y="-2.5,4.5" grid="1" height="260">
+          <yave-point x="0" y="1" label="F(0, 1)"></yave-point>
+          <yave-segment x1="-4" y1="-1" x2="4" y2="-1" label="准线 y = −1"></yave-segment>
+          <yave-point x="0" y="0" label="O"></yave-point>
+        </yave-geo>
+      </section>
+
+      <section class="y-step">
+        <h2>取一个点，量两段距离</h2>
+        <p>取 P(2, 1)。到 F 的距离是 2，到准线的距离也是 2。</p>
+        <yave-geo x="-4,4" y="-2.5,4.5" grid="1" height="260">
+          <yave-point x="0" y="1" label="F(0, 1)"></yave-point>
+          <yave-segment x1="-4" y1="-1" x2="4" y2="-1" label="准线"></yave-segment>
+          <yave-point x="2" y="1" label="P(2, 1)"></yave-point>
+          <yave-segment from="0,1" to="2,1" label="2"></yave-segment>
+          <yave-segment from="2,1" to="2,-1" label="2"></yave-segment>
+        </yave-geo>
+      </section>
+
+      <section class="y-step">
+        <h2>让 P 动起来，轨迹就是抛物线</h2>
+        <p>把满足条件的点连起来，得到 y = x²/4。</p>
+        <yave-geo x="-4,4" y="-2.5,4.5" grid="1" height="260">
+          <yave-curve expr="x^2/4" from="-3.6" to="3.6" label="y = x²/4"></yave-curve>
+          <yave-point x="0" y="1" label="F"></yave-point>
+          <yave-segment x1="-4" y1="-1" x2="4" y2="-1" label="准线"></yave-segment>
+          <yave-point x="2" y="1" label="P"></yave-point>
+          <yave-vector x="2" y="1" label=""></yave-vector>
+        </yave-geo>
+      </section>
+    </div>
+
+    <section class="y-card">
+      <h2>三角形也不能画歪</h2>
+      <p>坐标等比缩放后，<code>yave-circle</code> 不会变成椭圆，三角形的角度也保持真实。</p>
+      <yave-geo x="-1,4" y="-1,3.5" grid="1" height="240">
+        <yave-polygon points="0,0 3,0 1,2" labels="O,B,A"></yave-polygon>
+        <yave-circle x="0" y="0" r="1" label="r = 1"></yave-circle>
+        <yave-point x="0" y="0" label="O"></yave-point>
+        <yave-point x="3" y="0" label="B(3, 0)"></yave-point>
+        <yave-point x="1" y="2" label="A(1, 2)"></yave-point>
+      </yave-geo>
+    </section>
+
+    <section class="y-card y-stack">
+      <h3>对照条</h3>
+      <div class="y-bars">
+        <div class="y-bar" style="--v:.72"><span>方案 A</span><i></i><b>72</b></div>
+        <div class="y-bar" style="--v:.45"><span>方案 B</span><i></i><b>45</b></div>
+      </div>
+    </section>
+
+    <section class="y-card">
+      <h3>流程</h3>
+      <div class="y-flow">
+        <span class="y-node">输入</span>
+        <span class="y-arrow">→</span>
+        <span class="y-node is-hot">解析</span>
+        <span class="y-arrow">→</span>
+        <span class="y-node">输出</span>
+      </div>
+    </section>
+
+    <section class="y-card">
+      <h3>时间轴</h3>
+      <div class="y-timeline">
+        <div><strong>01</strong> 取焦点</div>
+        <div><strong>02</strong> 放准线</div>
+        <div><strong>03</strong> 连轨迹</div>
+      </div>
+    </section>
+
+    <label class="y-slider">
+      <span>缩放 <output>2</output></span>
+      <input type="range" min="0" max="5" step="0.1" value="2">
+    </label>
+
+    <div class="y-stats">
+      <div class="y-stat"><b>3</b><span>帧</span></div>
+      <div class="y-stat"><b>1</b><span>条曲线</span></div>
+    </div>
+  </main>
+  <script src="./yave.js"></script>
+  <!-- 部署后页面可改用：
+  <script src="https://xe0rf.github.io/yave/yave.js"></script>
+  -->
+
+</body>
+</html>
