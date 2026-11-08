@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yave demo · 让变换自己发生</title>
+</head>
+<body>
+  <main class="y-page">
+    <header class="y-hero">
+      <p class="y-kicker">yave / demo</p>
+      <h1>让变换自己发生</h1>
+      <p class="y-lede">父函数、参数和变换后的图形同时在场；拖动滑条，或让它自己播放。</p>
+    </header>
+
+    <div class="y-callout">
+      <strong>一个 <code>yave-geo</code> 就是一张可交互的图。</strong>
+      播放、参数滑条、缩放和平移全部由运行时生成，页面里没有手写按钮。
+    </div>
+
+    <section>
+      <h2>函数变换</h2>
+      <p>父函数 $y=x^2$ 留作 ghost；$a$、$h$、$k$ 由一条时间线推进。</p>
+      <figure>
+        <yave-geo x="-6,6" y="-4,8"
+                  a="0.5..2" a-value="1"
+                  h="-2..2" h-value="0"
+                  k="-2..4" k-value="0"
+                  animate="a:1..2; h:0..2; k:0..3" duration="8">
+          <yave-curve base="x^2" expr="a*f(b*(x-h))+k" from="-2.8" to="2.8"></yave-curve>
+          <yave-label x="-5.5" y="7">$y=x^2$</yave-label>
+          <yave-label x="-5.5" y="5">$y=a f(b(x-h))+k$</yave-label>
+        </yave-geo>
+        <figcaption>父函数是虚线 ghost；变换后的曲线用强调色。拖动 $a$、$h$、$k$ 会暂停播放。</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>图形变换</h2>
+      <p>原图留作 ghost；旋转、缩放、平移只写一行 <code>transform</code>，不用手算坐标。</p>
+      <figure>
+        <yave-geo x="-4,6" y="-1,5" height="300" equal
+                  theta="0..360" theta-value="0"
+                  s="0.5..2" s-value="1"
+                  tx="-2..2" tx-value="0"
+                  ty="-2..2" ty-value="0"
+                  animate="theta:0..90; s:1..1.5; tx:0..2" duration="8">
+          <yave-polygon points="0,0 3,0 1,2" labels="O,B,A" ghost></yave-polygon>
+          <yave-vector x="tx" y="ty" label="$T$"></yave-vector>
+          <yave-group transform="translate(tx,ty) rotate(theta) scale(s)" origin="0,0">
+            <yave-polygon points="0,0 3,0 1,2" labels="O',B',A'"></yave-polygon>
+          </yave-group>
+        </yave-geo>
+        <figcaption>三角形绕原点旋转，再平移；标签随图形一起变换。</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>参数曲线</h2>
+      <p>参数方程直接写 <code>x-expr</code> / <code>y-expr</code>，$t$ 可以随时间推进。</p>
+      <figure>
+        <yave-geo x="-4,4" y="-2,2" equal animate="t:0..6.283" duration="6">
+          <yave-curve x-expr="cos(t)" y-expr="sin(t)" from="0" to="6.283"></yave-curve>
+          <yave-point x="cos(t)" y="sin(t)" label="$P$"></yave-point>
+          <yave-label x="-3.5" y="1.5">$(\cos t,\sin t)$</yave-label>
+        </yave-geo>
+        <figcaption>单位圆上的点 $P$ 连续运动；曲线本身是参数方程采样出来的。</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>非数学内容</h2>
+      <p>表格、列表、流程图和 ER 关系都优先用原生结构，不堆卡片。</p>
+      <div class="y-tabs">
+        <button class="y-tab" type="button">变换前</button>
+        <button class="y-tab" type="button">变换后</button>
+        <div class="y-panel">
+          <table>
+            <thead><tr><th>量</th><th>值</th></tr></thead>
+            <tbody>
+              <tr><td>顶点 A</td><td>(1, 2)</td></tr>
+              <tr><td>顶点 B</td><td>(3, 0)</td></tr>
+              <tr><td>面积</td><td>3.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="y-panel">
+          <table>
+            <thead><tr><th>量</th><th>值</th></tr></thead>
+            <tbody>
+              <tr><td>O'</td><td>(2, 0)</td></tr>
+              <tr><td>B'</td><td>(2, 4.5)</td></tr>
+              <tr><td>面积</td><td>6.75</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ul class="y-tree">
+        <li>坐标系
+          <ul>
+            <li>函数曲线</li>
+            <li>参数曲线</li>
+          </ul>
+        </li>
+        <li>图形变换
+          <ul>
+            <li>旋转 / 平移 / 缩放</li>
+          </ul>
+        </li>
+      </ul>
+
+      <yave-er>
+User: id, name, email
+Order: id, user_id, total
+User -> Order: 1:N
+      </yave-er>
+
+      <details>
+        <summary>展开推导</summary>
+        <p>长公式默认折叠；正文只保留关键一步，避免把解释页写成公式墙。</p>
+      </details>
+    </section>
+
+    <section>
+      <h2>流程</h2>
+      <div class="y-flow">
+        <span class="y-node">取参数</span><span class="y-arrow">→</span>
+        <span class="y-node is-hot">重绘图形</span><span class="y-arrow">→</span>
+        <span class="y-node"><yave-icon name="check" size="16"></yave-icon> 读结果</span>
+      </div>
+    </section>
+  </main>
+  <script src="./yave.js"></script>
+</body>
+</html>

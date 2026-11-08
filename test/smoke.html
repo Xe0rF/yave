@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yave smoke</title>
+</head>
+<body>
+  <main class="y-page">
+    <h1>yave smoke</h1>
+    <p>分数 $\frac{2}{3}$ 与向量 $\vec{AB}$。</p>
+
+    <section>
+      <h2>函数</h2>
+      <figure>
+        <yave-geo x="-4,4" y="-2,8" a="0.5..2" a-value="1" h="-1..1" k="0..2" paused>
+          <yave-curve base="x^2" expr="a*f(x-h)+k" from="-3" to="3" label="$P$"></yave-curve>
+        </yave-geo>
+      </figure>
+    </section>
+
+    <section>
+      <h2>图形</h2>
+      <figure>
+        <yave-geo x="-4,4" y="-4,4" theta="0..360" s="0.5..2" tx="-1..1" ty="-1..1" paused>
+          <yave-polygon points="0,0 2,0 1,1.5" labels="O,B,A" ghost></yave-polygon>
+          <yave-group transform="translate(tx,ty) rotate(theta) scale(s)" origin="0,0">
+            <yave-polygon points="0,0 2,0 1,1.5" labels="O',B',A'"></yave-polygon>
+          </yave-group>
+        </yave-geo>
+      </figure>
+    </section>
+
+    <section>
+      <h2>动画</h2>
+      <figure>
+        <yave-geo x="-2,2" y="-1,4" animate="t:0..2" paused data-test="anim">
+          <yave-curve expr="x^2" from="-2" to="2"></yave-curve>
+          <yave-point x="t" y="t^2" label="$P$"></yave-point>
+        </yave-geo>
+      </figure>
+    </section>
+
+    <section>
+      <h2>交互</h2>
+      <div class="y-tabs">
+        <button class="y-tab" type="button">前</button>
+        <button class="y-tab" type="button">后</button>
+        <div class="y-panel"><p>panel one</p></div>
+        <div class="y-panel"><p>panel two</p></div>
+      </div>
+      <label class="y-slider">
+        <span>v = <output>2</output></span>
+        <input type="range" min="0" max="10" step="1" value="2" data-yave-var="--v">
+      </label>
+      <div class="y-steps">
+        <section class="y-step">one</section>
+        <section class="y-step">two</section>
+      </div>
+      <yave-er>
+User: id, name
+Order: id, user_id
+User -> Order: 1:N
+      </yave-er>
+      <div class="y-flow"><span class="y-node"><yave-icon name="check" size="16"></yave-icon> done</span></div>
+      <table><thead><tr><th>a</th><th>b</th></tr></thead><tbody><tr><td>1</td><td>2</td></tr></tbody></table>
+    </section>
+    <pre id="result">SMOKE_PENDING</pre>
+  </main>
+  <script src="../dist/yave.js"></script>
+  <script>
+    (function () {
+      const results = [];
+      function check(name, ok, detail) {
+        results.push({ name, ok: !!ok, detail: detail || '' });
+      }
+      function finish() {
+        const fails = results.filter(r => !r.ok);
+        const el = document.getElementById('result');
+        if (fails.length) {
+          el.textContent = 'SMOKE_FAIL\n' + fails.map(f => f.name + ': ' + f.detail).join('\n');
+          document.title = 'SMOKE_FAIL';
+        } else {
+          el.textContent = 'SMOKE_PASS ' + results.length + ' checks';
+          document.title = 'SMOKE_PASS';
+        }
+      }
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          check('math-frac', document.querySelector('.y-frac'));
+          check('math-vec', document.querySelector('.y-vec'));
+          check('geo-curves', document.querySelectorAll('.yave-curve').length >= 2);
+          check('geo-ghost', document.querySelectorAll('.yave-curve.is-ghost').length >= 1);
+          check('geo-shape', document.querySelectorAll('yave-geo .yave-shape').length >= 2);
+          check('geo-group', document.querySelector('.yave-group'));
+          check('geo-params', document.querySelectorAll('.yave-geo-param input').length >= 3);
+          check('geo-label-math', document.querySelector('.yave-label-html .y-math'));
+          check('geo-no-errors', document.querySelectorAll('.yave-err').length === 0);
+
+          const tabs = document.querySelectorAll('.y-tab');
+          check('tabs-present', tabs.length >= 2);
+          tabs[1].click();
+          const panels = document.querySelectorAll('.y-panel');
+          check('tabs-switch', tabs[1].getAttribute('aria-selected') === 'true' && panels[0].hidden === true);
+
+          const slider = document.querySelector('.y-slider input');
+          const out = document.querySelector('.y-slider output');
+          slider.value = '7';
+          slider.dispatchEvent(new Event('input', { bubbles: true }));
+          check('slider', out.textContent === '7' && document.body.style.getPropertyValue('--v') === '7');
+
+          const next = document.querySelector('.y-controls .y-next');
+          check('steps-controls', !!next);
+          const firstActive = document.querySelector('.y-step.is-active');
+          next.click();
+          check('steps-next', document.querySelector('.y-step.is-active') !== firstActive);
+
+          check('er', document.querySelectorAll('.yave-er-entity').length === 2 &&
+                      document.querySelectorAll('.yave-er-rel').length === 1);
+          const icon = document.querySelector('yave-icon');
+          check('icon', icon && icon.shadowRoot && icon.shadowRoot.querySelector('svg'));
+          check('dark', getComputedStyle(document.body).backgroundColor === 'rgb(11, 14, 19)',
+                getComputedStyle(document.body).backgroundColor);
+          check('commit', window.Yave && /^[0-9a-f]{7,}$/.test(window.Yave.commit), window.Yave && window.Yave.commit);
+
+          const animGeo = document.querySelector('[data-test="anim"]');
+          const before = animGeo.querySelector('.yave-dot').getAttribute('cx');
+          animGeo.querySelector('[data-act="play"]').click();
+          setTimeout(function () {
+            const after = animGeo.querySelector('.yave-dot').getAttribute('cx');
+            check('anim', before !== after, before + ' -> ' + after);
+            check('width', document.documentElement.scrollWidth <= window.innerWidth + 1,
+                  document.documentElement.scrollWidth + ' vs ' + window.innerWidth);
+            finish();
+          }, 900);
+        }, 300);
+      });
+    })();
+  </script>
+</body>
+</html>

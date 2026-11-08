@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>yave — yet another visual explainer</title>
+</head>
+<body>
+  <main class="y-page">
+    <header class="y-hero">
+      <p class="y-kicker">yave / visual explainer</p>
+      <h1>把解释变成一张会动的图</h1>
+      <p class="y-lede">一个外链脚本，给解释页深色排版、LaTeX、函数与图形变换、参数滑条、连续动画和缩放。</p>
+    </header>
+
+    <div class="y-callout">
+      <strong>模型只写语义 HTML。</strong>
+      播放、参数滑条、缩放和平移全部由运行时生成；页面里不写 <code>&lt;style&gt;</code> 或 <code>&lt;script&gt;</code>。
+    </div>
+
+    <section>
+      <h2>接入</h2>
+      <pre><code>&lt;script src="https://xe0rf.github.io/yave/yave.js"&gt;&lt;/script&gt;</code></pre>
+      <p>完整配方见 <a href="./demo.html">demo.html</a>；页面内容用原生 HTML，几何和关系用自定义元素。</p>
+    </section>
+
+    <section>
+      <h2>一个例子</h2>
+      <p>父函数留作 ghost；$a$、$h$、$k$ 由一条时间线推进，也可以直接拖动滑条。</p>
+      <figure>
+        <yave-geo x="-6,6" y="-4,8"
+                  a="0.5..2" a-value="1"
+                  h="-2..2" h-value="0"
+                  k="-2..4" k-value="0"
+                  animate="a:1..2; h:0..2; k:0..3" duration="8">
+          <yave-curve base="x^2" expr="a*f(b*(x-h))+k" from="-2.8" to="2.8"></yave-curve>
+          <yave-label x="-5.5" y="7">$y=x^2$</yave-label>
+          <yave-label x="-5.5" y="5">$y=a f(b(x-h))+k$</yave-label>
+        </yave-geo>
+        <figcaption>悬停或点击图形，滚轮缩放、拖动平移、双击重置。</figcaption>
+      </figure>
+    </section>
+
+    <section>
+      <h2>能写什么</h2>
+      <dl>
+        <dt>函数变换</dt><dd><code>yave-curve base="x^2" expr="a*f(x-h)+k"</code></dd>
+        <dt>图形变换</dt><dd><code>yave-group transform="rotate(theta)"</code></dd>
+        <dt>连续动画</dt><dd><code>yave-geo animate="t:0..2"</code></dd>
+        <dt>参数滑条</dt><dd><code>a="0.5..2"</code></dd>
+        <dt>ER 关系</dt><dd><code>&lt;yave-er&gt;</code> 三行 DSL</dd>
+        <dt>非数学内容</dt><dd>原生 HTML、表格、<code>.y-flow</code>、<code>.y-tree</code></dd>
+      </dl>
+    </section>
+
+    <section>
+      <h2>最小动画</h2>
+      <pre><code>&lt;figure&gt;
+  &lt;yave-geo x="-2,2" y="-1,4" animate="t:0..2"&gt;
+    &lt;yave-curve expr="x^2" from="-2" to="2"&gt;&lt;/yave-curve&gt;
+    &lt;yave-point x="t" y="t^2" label="$P$"&gt;&lt;/yave-point&gt;
+  &lt;/yave-geo&gt;
+&lt;/figure&gt;</code></pre>
+      <p>不需要播放器、按钮或时间轴；工具栏会自动出现播放/暂停和缩放。</p>
+    </section>
+  </main>
+  <script src="./yave.js"></script>
+</body>
+</html>

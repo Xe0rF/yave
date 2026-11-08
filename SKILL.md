@@ -3,25 +3,27 @@ name: yave
 description: >-
   把概念、流程、架构、对比、数学或几何解释成可交互的单页 HTML 可视化（yet another visual explainer）。
   当用户说“解释/讲讲原理/看不懂/画个图/可视化/演示一下”，或问题涉及多步流程、状态转换、
-  前后对比、函数图像、坐标系、三角形/多边形时使用。输出一段 HTML 代码块。
+  前后对比、函数图像、坐标系、参数动画、三角形/多边形、ER 关系时使用。输出一段 HTML 代码块。
 ---
 
 # yave — yet another visual explainer
 
-把解释做成**移动端竖屏优先**的单页 HTML。页面通过一个外链脚本获得基础 CSS、步进动画、可视化构件和几何绘图；你只写语义标记，不手写 CSS/JS。
+把解释做成 **深色、移动端优先的夜间讲义页**。运行时提供排版、LaTeX、函数/几何变换、
+参数滑条、连续动画、缩放/平移；你只写语义 HTML 和少量自定义元素，不写 CSS/JS/按钮。
 
 ## 输出
 
-- 只输出一个 `html` 代码块，内容是完整文档。不写文件、不调用工具。
-- 代码块前最多一句结论；代码块后最多一句“哪一帧可以继续问”。
-- 页面语言跟随用户。简单符号用 Unicode（`x²`、`√`、`π`、`≈`、`≤`）；分数、根式、上下标、复杂公式用 LaTeX `$...$`，例如 `$\frac{2}{3}$`，不要写成 `2/3`。
-- 除下面这一行外，页面里不要出现 `<style>` 或 `<script>`：
+- 只输出一个 `html` 代码块，完整文档；不写文件、不调用工具。
+- 代码块前最多一句结论；代码块后最多一句“哪一帧/哪张图可以继续问”。
+- 唯一外链（不加版本号/query）：
 
 ```html
 <script src="https://xe0rf.github.io/yave/yave.js"></script>
 ```
 
-## 页面骨架
+- 页面里不要出现 `<style>` 或 `<script>`（上面这一行除外）。
+- 主题固定为深色；不要写内联颜色、背景、渐变、阴影。运行时负责 token。
+- 页面骨架：
 
 ```html
 <!doctype html>
@@ -34,112 +36,213 @@ description: >-
 <body>
   <main class="y-page">
     <header class="y-hero">
-      <div class="y-kicker">一句背景</div>
+      <p class="y-kicker">一句背景</p>
       <h1>一句话结论</h1>
       <p class="y-lede">补充一句为什么。</p>
     </header>
-    <!-- 3–8 个区块 -->
+    <section>...</section>
+    <section>...</section>
   </main>
-  <script src="https://yave.xe0rf.com/yave.js"></script>
+  <script src="https://xe0rf.github.io/yave/yave.js"></script>
 </body>
 </html>
 ```
 
-## 构件
+- 3–6 个 `section`；每节只讲一个变量/结论；hero 最多三行。
+- 几何图放进 `<figure>`，运行时自动编号 `Fig. 01`。
 
-| 目的 | 标记 |
-|---|---|
-| 卡片 | `<section class="y-card">`；子元素放进 `.y-stack` 自动留白 |
-| 结论/警告 | `<div class="y-callout">`；变体 `.is-ok` `.is-warn` `.is-err` |
-| 键值 | `<dl class="y-kv"><dt>键</dt><dd>值</dd></dl>` |
-| 两列 | `<div class="y-grid">…</div>` |
-| 流程 | `<div class="y-flow"><span class="y-node">A</span><span class="y-arrow">→</span><span class="y-node">B</span></div>`；加 `.is-v` 垂直 |
-| 时间轴 | `<div class="y-timeline"><div>…</div><div>…</div></div>` |
-| 对照条 | `<div class="y-bars"><div class="y-bar" style="--v:.72"><span>A</span><i></i><b>72</b></div></div>` |
-| 数字 | `<div class="y-stats"><div class="y-stat"><b>3</b><span>步</span></div></div>` |
-| 滑条 | `<label class="y-slider"><span>a = <output>2</output></span><input type="range" min="0" max="10" step="0.1" value="2"></label>` |
-| 徽标 | `<span class="y-badge">…</span>` |
-| 表格/代码 | 原生 `<table>` / `<pre><code>` |
+## 数学：强制 LaTeX
 
-滑条加 `data-yave-var="--a"` 会把当前值写到最近的 `[data-yave-scope]`（默认 `body`）的 CSS 变量上。
-`.y-node.is-hot` 高亮当前节点；`.y-callout`、`.y-card` 内最后一个子元素的底部留白会自动收掉。
+- **所有数学记号一律 `$...$` / `$$...$$`**，包括单变量、上下标、分数、根式、希腊字母、比较符、坐标。
+- 反例：`x²`、`2/3`、`√2`、`π≈3.14`、`F(0,1)`。
+- 正例：`$x^2$`、`$\frac{2}{3}$`、`$\sqrt{2}$`、`$\pi\approx3.14$`、`$F(0,1)$`、`$\vec{AB}$`。
+- Unicode 只用于非数学 UI（流程箭头 `→`、项目符号）；图标用 `<yave-icon>`。
+- 支持 `\frac \sqrt[n]{} \vec \overline \hat \sum \int \pi \le \ge \ne \approx \to \infty \text \mathbf \mathbb` 等。
+- 不写长篇推导；只保留一个关键公式，推导放 `<details>` 默认折叠。
+- 几何的 `label` 也写 `$...$`；`expr` 是代码表达式，不走 LaTeX。
 
-## 动画
+## 配方（直接抄）
+
+### 1. 连续动画 / 点沿曲线
 
 ```html
-<div class="y-steps">
-  <section class="y-step">
-    <h2>第 1 帧标题</h2>
-    …
-  </section>
-  <section class="y-step">…</section>
-</div>
+<figure>
+  <yave-geo x="-2,2" y="-1,4" animate="t:0..2" duration="6">
+    <yave-curve expr="x^2" from="-2" to="2"></yave-curve>
+    <yave-point x="t" y="t^2" label="$P$"></yave-point>
+  </yave-geo>
+  <figcaption>点 P 沿曲线连续移动。</figcaption>
+</figure>
 ```
 
-- 运行时自动生成最小控制条（`‹ 2 / 3 ›`）、键盘 ←/→、右上角帧编号。**不要自己写按钮。**
-- 帧内元素加 `.y-anim`（上浮淡入）或 `.y-pop`，用 `style="--d:.1s"` 错开。
-- 一个 `.y-steps` 只放一条动画流程；多条流程用多个 `.y-steps`。
-- 帧编号在对话里可直接指代：“第 2 帧”。
-- **跨帧连贯**：需要从上一帧平滑移动到下一帧的元素，在两帧里写相同的 `data-yave-key`；运行时会记录旧位置并做 FLIP 补间。元素用 `left` / `top` / `margin` 定位，不要用 `transform`。
-- `.y-canvas` 是相对定位画布（高 180px），`.y-dot` 是居中定位的圆点，适合做位移演示：
+- `animate="t:0..2"`：默认循环；`paused` 初始暂停；`once` 只播一次。
+- 工具栏自动出现播放/暂停 + 缩放/重置；不要写按钮。
+- 一个 section 最多一个自动动画。
+
+### 2. 函数变换
 
 ```html
-<div class="y-steps">
-  <section class="y-step">
-    <div class="y-canvas"><span class="y-dot" data-yave-key="p" style="left:15%;top:50%">P</span></div>
-  </section>
-  <section class="y-step">
-    <div class="y-canvas"><span class="y-dot" data-yave-key="p" style="left:85%;top:50%">P</span></div>
-  </section>
-</div>
-```
-
-- 几何图内部是即时重绘的；`data-yave-key` 只让整图移动，不做曲线形变插值。
-
-## 几何
-
-```html
-<yave-geo x="-5,5" y="-4,4" grid="1" height="250">
-  <yave-curve expr="x^2 - 2" from="-2.5" to="2.5" label="y = x² − 2"></yave-curve>
-  <yave-point x="1" y="-1" label="A(1, −1)"></yave-point>
-  <yave-polygon points="0,0 3,0 1,2" labels="O,B,A"></yave-polygon>
+<yave-geo x="-6,6" y="-4,8"
+          a="0.5..2" a-value="1"
+          h="-2..2" h-value="0"
+          k="-2..4" k-value="0"
+          animate="a:1..2; h:0..2; k:0..3" duration="8">
+  <yave-curve base="x^2" expr="a*f(b*(x-h))+k" from="-2.8" to="2.8"></yave-curve>
+  <yave-label x="-5.5" y="7">$y=x^2$</yave-label>
+  <yave-label x="-5.5" y="5">$y=a f(b(x-h))+k$</yave-label>
 </yave-geo>
 ```
 
-- `yave-geo`：`x` / `y` 是显示范围 `min,max`；`grid` 网格步长（`0` 关闭）；`height` 像素高度。
-- `yave-curve`：`expr` 表达式、`from` / `to`、`label`、`dashed`。
-- `yave-point`：`x` `y` `label`。
-- `yave-segment`：`x1 y1 x2 y2` 或 `from="x,y" to="x,y"`，可选 `label`。
-- `yave-polygon`：`points="x,y x,y …"`、`labels="A,B,C"`；`open` 只画折线不填充。
-- `yave-circle`：`x` `y` `r`。
-- `yave-vector`：`x` `y` 终点，可选 `ox` `oy` 起点（默认原点）。
-- `yave-label`：`x` `y`，元素文本即标签。
-- 表达式：`+ - * / ^`、括号、`x`、`pi`/`π`、`e`，以及 `sin cos tan asin acos atan sqrt abs ln log log2 log10 exp floor ceil round min max pow`；隐式乘法 `2x` 可用。
-- 坐标等比缩放：圆不会变形，角度真实。几何图放在 `.y-card` 里更稳。
+- `base` 编译父函数；`expr` 里用 `f(x)`；自动画 ghost 父曲线（`no-ghost` 可关）。
+- `a/b/h/k` 是内置参数；`a="0.5..2"` 自动生成滑条，`a-value` 设初值；单值 `a="2"` 是常量。
+- `animate="a:1..2; h:0..2"` 一条时间线同时插值；播放时滑条跟着动，拖动滑条会暂停。
+- 未声明的参数默认：`a=b=1`，`h=k=tx=ty=theta=0`，`s=1`。
 
-## 数学
+### 3. 图形变换
 
-- 行内 `$...$`，块级 `$$...$$`；运行时内置渲染，不加载外部库。
-- 支持 `\frac` / `\dfrac` / `\sqrt[n]{}`、`^` / `_`、希腊字母，以及 `\times \cdot \pm \le \ge \ne \approx \infty \to \sum \prod \int` 等常用命令。
-- 分数不要写成 `2/3`：写 `$\frac{2}{3}$`。
-- 几何的 `expr` 是代码表达式（`x^2/4`），不走 LaTeX；图上的 `label` 用 Unicode 或纯文本。
+```html
+<yave-geo x="-4,6" y="-1,5" height="300" equal
+          theta="0..360" theta-value="0"
+          s="0.5..2" s-value="1"
+          tx="-2..2" tx-value="0"
+          ty="-2..2" ty-value="0"
+          animate="theta:0..90; s:1..1.5; tx:0..2" duration="8">
+  <yave-polygon points="0,0 3,0 1,2" labels="O,B,A" ghost></yave-polygon>
+  <yave-group transform="translate(tx,ty) rotate(theta) scale(s)" origin="0,0">
+    <yave-polygon points="0,0 3,0 1,2" labels="O',B',A'"></yave-polygon>
+  </yave-group>
+</yave-geo>
+```
 
-## 教学规则
+- `equal`：保持等比（圆不变形、角度真实）；`yave-group` / `yave-circle` 会自动触发。纯多边形/角度图也要加。
+- 原图 `ghost`；变换后的图放 `yave-group`。`origin="x,y"` 指定旋转/缩放中心。
+- 变换顺序固定：`translate(tx,ty)` → 平移到 origin → rotate → scale → 平移回 -origin。
+- 反射用 `scale(-1,1)` / `scale(1,-1)`。
+- 标签随 group 旋转；需要水平标签就把 `yave-label` 放 group 外。
 
-- 移动端竖屏优先；`y-page` 已是窄列，不要做桌面双栏。
-- 尽可能用布局、动画、图标、滑条代替大段文字。
-- 动画只提供最小控制器；关键帧要有数字编号。
-- 用多个有代表性的例子覆盖边界条件。
+### 4. 参数探索
+
+```html
+<yave-geo x="-3,3" y="-1,9" a="0.2..2" a-value="1">
+  <yave-curve expr="a*x^2"></yave-curve>
+</yave-geo>
+```
+
+- 范围属性自动生成滑条；单值是常量。表达式可用 `a`、`b`、`h`、`k`、`s`、`theta`、`tx`、`ty`、`t`。
+
+### 5. 参数曲线
+
+```html
+<yave-geo x="-4,4" y="-2,2" equal animate="t:0..6.283">
+  <yave-curve x-expr="cos(t)" y-expr="sin(t)" from="0" to="6.283"></yave-curve>
+  <yave-point x="cos(t)" y="sin(t)" label="$P$"></yave-point>
+</yave-geo>
+```
+
+### 6. 前后对比 / tabs
+
+```html
+<div class="y-tabs">
+  <button class="y-tab" type="button">变换前</button>
+  <button class="y-tab" type="button">变换后</button>
+  <div class="y-panel">...</div>
+  <div class="y-panel">...</div>
+</div>
+```
+
+- 运行时补 tablist/role/键盘；不要自己写 aria 或按钮样式。
+
+### 7. 流程 / 层级 / ER
+
+```html
+<div class="y-flow">
+  <span class="y-node">取参数</span><span class="y-arrow">→</span>
+  <span class="y-node is-hot">重绘</span><span class="y-arrow">→</span>
+  <span class="y-node">读结果</span>
+</div>
+
+<ul class="y-tree">
+  <li>坐标系<ul><li>函数曲线</li><li>参数曲线</li></ul></li>
+</ul>
+
+<yave-er>
+User: id, name, email
+Order: id, user_id, total
+User -> Order: 1:N
+</yave-er>
+```
+
+- ER 用实体卡 + 关系胶囊，不做自动布线；复杂流程用 `.y-flow`，层级用 `.y-tree`。
+- 表格用原生 `<table>`；运行时自动包横向滚动容器；只用行分隔线，无外框。
+
+### 8. 图标
+
+```html
+<yave-icon name="lightbulb" size="16" label="提示"></yave-icon>
+```
+
+可用：`lightbulb zap target route layers network cpu database server cloud code-2 terminal git-branch workflow box circle triangle square sigma chart-line chart-bar gauge clock calendar arrow-right arrow-down arrow-up check x alert-triangle info circle-help play pause rotate-ccw zoom-in zoom-out plus minus settings-2 sliders-horizontal move eye search filter list table book-open graduation-cap maximize-2 chevron-left chevron-right chevron-down`。
+
+不包装饰容器；默认 16px；未知名称回退 `circle-help`。
+
+## 几何 API
+
+```html
+<yave-geo x="-5,5" y="-4,4" grid="1" height="240" equal
+          a="0.5..2" a-value="1" animate="a:1..2" duration="6" zoom="1.2">
+  <yave-curve expr="a*x^2" from="-2" to="2" label="$y=a x^2$"></yave-curve>
+  <yave-point x="1" y="a" label="$A$"></yave-point>
+  <yave-segment from="0,0" to="1,a" label="$OA$"></yave-segment>
+  <yave-polygon points="0,0 3,0 1,2" labels="O,B,A"></yave-polygon>
+  <yave-circle x="0" y="0" r="1" label="$r=1$"></yave-circle>
+  <yave-vector x="2" y="1" label="$\vec{v}$"></yave-vector>
+  <yave-label x="-4" y="3">$y=f(x)$</yave-label>
+  <yave-group transform="rotate(theta)" origin="0,0">...</yave-group>
+</yave-geo>
+```
+
+| 元素 | 属性 |
+|---|---|
+| `yave-geo` | `x`/`y` 范围、`grid`、`height`、`equal`/`stretch`、`zoom`、`nozoom`、`label`；参数 `a b h k s theta tx ty` |
+| `yave-curve` | `expr`、`base`、`from`/`to`、`label`、`base-label`、`dashed`、`ghost`、`no-ghost`、`width`；参数曲线 `x-expr`/`y-expr` |
+| `yave-point` | `x` `y` `r` `label` |
+| `yave-segment` | `from="x,y"` `to="x,y"` 或 `x1 y1 x2 y2`，`label` |
+| `yave-polygon` | `points`、`labels`、`open`、`ghost` |
+| `yave-circle` | `x` `y` `r` `label` |
+| `yave-vector` | `x` `y`、`ox`/`oy`、`label` |
+| `yave-label` | `x` `y` `anchor`，文本可含 `$...$` |
+| `yave-group` | `transform="translate(tx,ty) rotate(theta) scale(s)"`、`origin`、`ghost` |
+
+- 表达式：`+ - * / ^`、括号、`x`、`t`、参数、`pi`/`π`、`e`，以及 `sin cos tan asin acos atan sqrt abs ln log log2 log10 exp floor ceil round min max pow`；隐式乘法 `2x` 可用。
+- 缩放：滚轮/双指缩放，拖动平移，双击或工具栏重置；`nozoom` 关闭。
+- `equal` 保持等比；函数图默认填满画框，几何图建议加；`stretch` 强制非等比（少用）。
+
+## 非数学内容
+
+- 默认用原生 HTML / Markdown 等价结构：标题、段落、列表、表格、`blockquote`、`pre/code`、`dl`、`details`、`figure/figcaption`。
+- 不要给每段套卡片；`section` 之间自动有 1px 顶线。
+- 关键结论/警告用 `.y-callout`（变体 `.is-ok` `.is-warn` `.is-err`）。
+- 两列用 `.y-grid`；流程用 `.y-flow`；层级用 `.y-tree`；前后用 `.y-tabs`。
+- 非几何参数用 `.y-slider` + `data-yave-var`（只改 CSS 变量）。
+- 长推导放 `<details>`；表格让运行时自动包滚动容器。
+- 不引入 Mermaid/通用图引擎；不要让模型手写 SVG 连线。
+- 只有状态必须离散时才用 `.y-steps`；几何动画优先用 `yave-geo animate`。
+
+## 教学与紧凑
+
+- 先给一个会动的图，再给一句话解释；不要先写三段背景。
+- 每个 section 一个变量/结论；3–6 节；hero 最多三行。
+- 公式是标注，不是主体；只写一个关键公式，其余折叠。
+- 每个 section 最多一个自动动画；整页尽量不超过 3 个，其余图用参数滑条或静态。
+- 数值例子要算过；不要编数据。
 - 与教学无关的东西保持小、少、安静。
-- 简单符号用 Unicode；分数、根式、上下标用 LaTeX `$...$`，不要用斜杠写分数。
-- 默认环境支持 Markdown 和代码块内的现代 HTML 渲染。
-- 示例数值要算过；算法或数值结果用工具验证，不要凭空编数据。
-- 开工前有歧义就问；问题明确就直接做。
 
 ## 自检
 
-- 只有一个 `yave.js` 外链，没有手写 `<style>` / `<script>`。
-- 360px 宽下不横向滚动。
-- 每一步都能用按钮和 ←/→ 走完；首尾帧按钮正确禁用。
-- 几何表达式没有拼写错误（图上不应出现 `⚠`）。
-- 页面内若有代码示例，外层代码块用四个反引号围栏。
+- 只有一个 `yave.js` 外链；没有手写 `<style>` / `<script>`；没有版本 query。
+- 所有数学都是 LaTeX；没有 `x²` / `2/3` / `√2`。
+- 没有渐变、装饰阴影、内联颜色；深色 token 未被破坏。
+- 360px 宽不横向滚动；表格在容器内滚动。
+- 几何图没有 `⚠`；滑条/动画/缩放可用；`yave-label` 的 `$...$` 能渲染。
+- 用 `.y-steps` 时按钮和 ←/→ 能走完，首尾禁用；tabs 键盘可切换。
+- 页面有 3–6 个 section；没有大段文字墙。
